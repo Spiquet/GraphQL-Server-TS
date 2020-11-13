@@ -3,13 +3,14 @@ var { graphqlHTTP } = require('express-graphql');
 var { buildSchema } = require('graphql');
 
 // GraphQL schema
-var schema = buildSchema(`
+const schema = buildSchema(`
     type Query {
         course(id: Int!): Course
         courses(topic: String): [Course]
         courses_by_title_sequences(title_sequence: String): [Course]
     },
     type Mutation {
+        addCourse (id: Int!, title: String!, author: String!, description: String!, topic: String!, url: String ): [Course]
         updateCourseTopic(id: Int!, topic: String!): Course
     }
     type Course {
@@ -22,7 +23,7 @@ var schema = buildSchema(`
     }
 `);
 
-var coursesData = [
+const coursesData = [
     {
         id: 1,
         title: 'The Complete Node.js Developer Course',
@@ -85,17 +86,31 @@ const updateCourseTopic = function ({ id, topic }) {
     return coursesData.filter(course => course.id === id)[0];
 }
 
-var root = {
+// Add a course and display the updated list of courses 
+const addCourse = function ({ id, title, author, description, topic, url }) {
+    newCourse = {
+        id,
+        title,
+        author,
+        description,
+        topic,
+        url,
+    };
+    coursesData.push(newCourse);
+    return coursesData;
+}
+
+const root = {
     course: getCourse,
     courses: getCourses,
     courses_by_title_sequences: getByTitleSequence,
-
-    updateCourseTopic: updateCourseTopic
+    updateCourseTopic: updateCourseTopic,
+    addCourse: addCourse
 
 };
 
 // Create an express server and a GraphQL endpoint
-var app = express();
+const app = express();
 app.use('/graphql', graphqlHTTP({
     schema: schema,
     rootValue: root,
