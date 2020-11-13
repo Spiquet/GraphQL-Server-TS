@@ -1,13 +1,24 @@
-var express = require('express');
-var { graphqlHTTP } = require('express-graphql');
-var { buildSchema } = require('graphql');
+import express from 'express';
+import { graphqlHTTP } from 'express-graphql';
+import { buildSchema } from 'graphql';
+
+
+type TData = {
+    id: number,
+    title: string,
+    author: string,
+    description: string,
+    topic: string,
+    url: string
+
+}
 
 // GraphQL schema
 const schema = buildSchema(`
     type Query {
         course(id: Int!): Course
         courses(topic: String): [Course]
-        courses_by_title_sequences(title_sequence: String): [Course]
+        courses_by_title_sequences(title: String): [Course]
     },
     type Mutation {
         addCourse (id: Int!, title: String!, author: String!, description: String!, topic: String!, url: String ): [Course]
@@ -50,14 +61,14 @@ const coursesData = [
     }
 ]
 
-const getCourse = function (args) {
+const getCourse = function (args: TData) {
     const id = args.id;
     return coursesData.filter(course => {
         return course.id == id;
     })[0];
 }
 
-const getCourses = function (args) {
+const getCourses = function (args: TData): Array<object> {
     if (args.topic) {
         var topic = args.topic;
         return coursesData.filter(course => course.topic === topic);
@@ -66,17 +77,17 @@ const getCourses = function (args) {
     }
 }
 // Query that takes as parameter a string of characters and returns all Courses whose title contains this string
-const getByTitleSequence = (args) => {
-    const coursesArray = [];
+const getByTitleSequence = function (args: TData): Array<object> {
+    const coursesArray: Array<object> = []
     coursesData.map((course) => {
-        if (course.title.includes(args.title_sequence)) {
+        if (course.title.includes(args.title)) {
             coursesArray.push(course);
         }
     });
     return coursesArray;
 };
 
-const updateCourseTopic = function ({ id, topic }) {
+const updateCourseTopic = function ({ id, topic }: TData) {
     coursesData.map(course => {
         if (course.id === id) {
             course.topic = topic;
@@ -87,8 +98,8 @@ const updateCourseTopic = function ({ id, topic }) {
 }
 
 // Add a course and display the updated list of courses 
-const addCourse = function ({ id, title, author, description, topic, url }) {
-    newCourse = {
+const addCourse = function ({ id, title, author, description, topic, url }: TData) {
+    const newCourse = {
         id,
         title,
         author,
